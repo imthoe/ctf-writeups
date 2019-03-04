@@ -1,20 +1,4 @@
----
-layout: post
-title: "TAMUctf 2019 - Write-ups"
-lang: en
-categories:
-  - writeups
-tags:
-  - security
-  - writeups
-  - ctf
-  - misc
-date: 2019/03/03 00:00:00
-thumbnail: /images/ctf.png
-authorId: imth
----
-
-### CTF
+## CTF
 
 - **Name** : TAMUctf
 - **Website** : [ctf.tamu.edu](http://ctf.tamu.edu/)
