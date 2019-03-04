@@ -1,7 +1,9 @@
-## CTF
+## Information
 
-- **Name** : TAMUctf
-- **Website** : [ctf.tamu.edu](http://ctf.tamu.edu/)
+### CTF
+
+- **Name** : TAMUctf 19
+- **Website** : [tamuctf.com](https://tamuctf.com/)
 - **Type** : Online
 - **Format** : Jeopardy
 - **CTF Time** : [link](https://ctftime.org/event/740)
@@ -15,6 +17,34 @@
 
 Flag: `Boardman`
 
+## 306 - I heard you like files. - Misc
+
+With the tool binwalk we can see embedded files inside of art.png and extract them.
+One of those extracted files is a word document containing another image image1.jpg.
+
+```
+root@kali:~# binwalk -e art.png
+root@kali:~# binwalk -e _art.png.extracted/word/media/image1.jpg
+```
+
+Yet again we can use binwalk to extract a pdf file: `binwalk -D pdf:pdf: image1.png`
+
+Then we can use the tool strings to find a base64 string at the very end of the file which decodes to our flag.
+
+```
+root@kali:~# echo ZmxhZ3tQMGxZdEByX0QwX3kwdV9HM3RfSXRfTjB3P30K | base64 -d
+flag{P0lYt@r_D0_y0u_G3t_It_N0w?}
+```
+
+## 340 - Hello World - Misc
+
+There is whitespace code in front of the Hello World program.
+Running it [here](https://vii5ard.github.io/whitespace/) gives us `Well sweet golly gee, that sure is a lot of whitespace!`.
+
+Though we notice that there are more characters being pushed to the stack than there are being printed. Just add some more print statements at the end and we get `Well sweet golly gee, that sure is a lot of whitespace!}3v4h_u0y_gn1c4ps_t4hw_ym_h0{megig`
+
+Flag: `gigem{0h_my_wh4t_sp4c1ng_y0u_h4v3}`
+
 ## 100 - 0_intrusion - MicroServices
 
 >Welcome to MicroServices inc, where do all things micro and service oriented!
@@ -24,16 +54,18 @@ Flag: `Boardman`
 
 10.91.9.3
 
-## 412 - Hello World - Misc
+## 100 - 1_logs - MicroServices
 
-There is whitespace code in front of the Hello World program.
-Running it [here](https://vii5ard.github.io/whitespace/) gives us `Well sweet golly gee, that sure is a lot of whitespace!`.
+If we mount the filesystem and take a look into `/var/log/auth.log` we can see that the attacker logged in as root at the time Feb 17 00:06:04.
 
-Though we notice that there are more characters being pushed to the stack than there are being printed. Just add some more print statements at the end and we get `Well sweet golly gee, that sure is a lot of whitespace!}3v4h_u0y_gn1c4ps_t4hw_ym_h0{megig`
+```
+Feb 17 00:06:04 ubuntu-xenial sshd[15799]: Accepted publickey for root from 10.91.9.93 port 41592 ssh2: RSA SHA256:lR4653Hv/Y9QthWvXFB2KkNPzQ1r8mItv83OgiCAR4g
+Feb 17 00:06:04 ubuntu-xenial sshd[15799]: pam_unix(sshd:session): session opened for user root by (uid=0)
+Feb 17 00:06:04 ubuntu-xenial systemd-logind[1035]: New session 2 of user root.
+Feb 17 00:06:04 ubuntu-xenial systemd: pam_unix(systemd-user:session): session opened for user root by (uid=0)
+```
 
-Flag: `gigem{0h_my_wh4t_sp4c1ng_y0u_h4v3}`
-
-## 420 - Stop and Listen - Network/Pentest
+## 324 - Stop and Listen - Network/Pentest
 
 Simply connect to the vpn and listen on the tap0 interface with wireshark.
 
@@ -41,7 +73,7 @@ Wait a little while and click "Follow > UDP Stream"
 
 Flag: `gigem{f0rty_tw0_c9d950b61ea83}`
 
-## 492 - Wordpress - Network/Pentest
+## 469 - Wordpress - Network/Pentest
 
 Run wpscan just to make sure
 
@@ -148,7 +180,7 @@ gigem{w0rd_pr3ss_b3st_pr3ss_409186FC8E2A45FE}
 root@apacheword:~#
 ```
 
-## 494 - Calculator - Network/Pentest
+## 474 - Calculator - Network/Pentest
 
 We have two hosts 172.30.0.2 and 172.30.0.3
 
@@ -168,7 +200,7 @@ alice@f090dcc3a123:~$ cat .ctf_flag
 gigem{f5ae5f528ed5a9ad312f75bd1d3406a2}
 ```
 
-## 436 - Secrets - Android
+## 376 - Secrets - Android
 
 Use apktool to unpack the android app:
 
@@ -181,7 +213,7 @@ root@ubuntu:~/howdyapp# echo "Z2lnZW17aW5maW5pdGVfZ2lnZW1zfQ==" | base64 -d
 gigem{infinite_gigems}
 ```
 
-## 484 - Local News - Android
+## 460 - Local News - Android
 
 Unpack the apk and convert the dex files to jar
 
@@ -306,3 +338,69 @@ public class Main {
 
 }
 ```
+
+## 354 - RSAaaay - Crypto
+
+We were given a public key pair (containing n & e) and a secret message.
+Because the public key is extremely weak it's easy to recover the private key to decrypt the message.
+After decrypting the message we notice that some values have to be split into two to fit into the ascii range.
+
+
+```python
+def isqrt(n):
+    x = n
+    y = (x + n // x) // 2
+    while y < x:
+        x = y
+        y = (x + n // x) // 2
+    return x
+
+
+def fermat(n):
+    a = isqrt(n)
+    b2 = a*a - n
+    b = isqrt(n)
+    count = 0
+    while b*b != b2:
+        a = a + 1
+        b2 = a*a - n
+        b = isqrt(b2)
+        count += 1
+    p = a+b
+    q = a-b
+    assert n == p * q
+    return p, q
+
+def egcd(a, b):
+    if a == 0:
+        return (b, 0, 1)
+    else:
+        g, y, x = egcd(b % a, a)
+        return (g, x - (b // a) * y, y)
+
+def modinv(a, m):
+    g, x, y = egcd(a, m)
+    if g != 1:
+        raise Exception('modular inverse does not exist')
+    else:
+        return x % m
+
+def main():
+    n = 2531257
+    e = 43
+    p,q = fermat(n)
+    phi = (p-1)*(q-1)
+    d = modinv(e,phi)
+    enc = [906851, 991083, 1780304, 2380434, 438490, 356019, 921472, 822283, 817856, 556932, 2102538, 2501908, 2211404, 991083, 1562919, 38268]
+    dec = [pow(x,d)%n for x in enc]
+    # [103L, 105103L, 101109L, 12383L, 97118L, 97103L, 10195L, 83105L, 12095L, 70108L, 121105L, 110103L, 9584L, 105103L, 101114L, 115125L]
+    # split into ascii range values
+    msg = [103, 105, 103, 101, 109, 123, 83, 97, 118, 97, 103, 101, 95, 83, 105, 120, 95, 70, 108, 121, 105, 110, 103, 95, 84, 105,103, 101, 114, 115, 125]
+
+    print ''.join([chr(c) for c in msg])
+
+if __name__ == '__main__':
+    main()
+```
+
+Flag: `gigem{Savage_Six_Flying_Tigers}`
