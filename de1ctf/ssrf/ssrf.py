@@ -26,3 +26,5 @@ cookies['sign'] = read_sign
 
 r = requests.get(base_url+'/De1ta?param='+param,cookies=cookies)
 print r.text
+
+# flag: de1ctf{27782fcffbb7d00309a93bc49b74ca26}
